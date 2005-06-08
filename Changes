@@ -1,0 +1,11 @@
+June 8, 2005 - 0.11
+  - get functional interactive xterm session working on linux
+  - check PAR::WebStart version against that possibly specified
+    in the .pnlp file
+  - make notes in docs that the "icon" and "description" elements
+    of the .pnlp specification aren't completely implemented in
+    the perlws.pl script
+  - add notes about how to add file associations on linux
+
+May 31, 2005 - 0.1
+  - initial release
