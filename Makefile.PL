@@ -14,18 +14,19 @@ my $prereqs = {'LWP' => 0,
 my @exe_files = map {"scripts/$_"} qw(perlws.pl make_par.pl);
 push @exe_files, 'scripts/pnlp_registry.pl' if ($^O eq 'MSWin32');
 
+my $dir = [];
+push @$dir, qw(lib);
+eval {require Apache2::RequestRec;};
+unless ($@) {
+  push @$dir, qw(Apache2);
+}
+
 my %opts = (
             NAME              => 'PAR::WebStart',
             VERSION_FROM      => 'lib/PAR/WebStart.pm', # finds $VERSION
             EXE_FILES => \@exe_files,
             PL_FILES => {},
-            PM => {'lib/PAR/WebStart.pm' => 
-                   '$(INST_LIBDIR)/WebStart.pm',
-                   'lib/PAR/WebStart/PNLP.pm' => 
-                   '$(INST_LIBDIR)/WebStart/PNLP.pm',
-                   'lib/PAR/WebStart/Util.pm' => 
-                   '$(INST_LIBDIR)/WebStart/Util.pm',
-                  },
+            DIR => $dir,
             dist   => {
                         SUFFIX   => 'gz',
                         COMPRESS => 'gzip -9f',

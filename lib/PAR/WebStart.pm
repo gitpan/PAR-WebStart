@@ -12,7 +12,7 @@ use PAR::WebStart::Util qw(verifyMD5);
 use Config;
 use constant WIN32 => PAR::WebStart::Util::WIN32;
 
-our $VERSION = 0.11;
+our $VERSION = 0.15;
 
 sub new {
   my ($class, %args) = @_;
@@ -48,7 +48,7 @@ sub new {
   my %config = (os => $Config{osname},
                 arch => $Config{archname},
                 version => $],
-                api_version => $Config{api_version},
+                perl_version => $Config{PERL_VERSION},
                );
   my $self = {pnlp => $file, cfg => $cfg, ERROR => '', %config,
               tmpdir => $tmpdir, pars => [], par_command => $par_command,
@@ -152,7 +152,7 @@ sub fetch_pars {
 sub check_platform {
   my ($self, $hash) = @_;
   return if ($hash->{version} and $hash->{version} > $self->{version});
-  foreach my $key(qw(os arch api_version)) {
+  foreach my $key(qw(os arch perl_version)) {
     return if ($hash->{$key} and $hash->{$key} ne $self->{$key});
   }
   return 1;
@@ -278,7 +278,7 @@ __END__
 
 =head1 NAME
 
-PAR::WebStart - Perl implementation of WebStart
+PAR::WebStart - Perl implementation of Java's WebStart
 
 =head1 SYNOPSIS
 

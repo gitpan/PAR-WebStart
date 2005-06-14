@@ -12,7 +12,7 @@ use constant WIN32 => PAR::WebStart::Util::WIN32;
 
 my $cwd = getcwd;
 my $name = 'MyPar';
-my $src_dir = File::Spec->catdir($cwd, 'ex', 'D');
+my $src_dir = File::Spec->catdir($cwd, '../ex', 'D');
 my $dst_dir = File::Spec->catdir($cwd, 't');
 my ($dst_par, $cs) = make_par(src_dir => $src_dir, dst_dir => $dst_dir,
                               name => 'MyPar', no_sign => 1);

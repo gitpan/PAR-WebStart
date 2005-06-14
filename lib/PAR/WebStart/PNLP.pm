@@ -5,7 +5,7 @@ use XML::SAX::ExpatXS;
 use XML::SAX;
 use File::Basename;
 use base qw(XML::SAX::Base);
-our $VERSION = 0.11;
+our $VERSION = 0.15;
 
 our %wantarray = map {$_ => 1} qw(par argument description module);
 
@@ -346,7 +346,7 @@ be warned that this has taken place.
 The resources element is used to specify the resources, normally as
 C<PAR> files, that are
 part of the application.  A resource definition can be restricted to
-a specific operating system, architecture, perl version, or api version
+a specific operating system, architecture, or perl version
 using the following attributes:
 
 =over 4
@@ -361,15 +361,15 @@ This corresponds to  C<$Config{archname}>.
 
 =item version
 
-This denotes the minimal perl version required,
+This denotes the minimal perl version required
+(as given by C<$]>)
 and I<must> be given in the form, for example,
 C<5.008006> for perl-5.8.6.
 
-=item api_version
+=item perl_version
 
-This corresponds to  C<$Config{api_version}>, and denotes
-the C<api_version> of Perl 5 the client must have (for example,
-C<api_version> is C<8> for C<perl-5.8>.
+This corresponds to C<$Config{PERL_VERSION}>, and denotes
+the C<PERL_VERSION> of Perl 5 the client must have.
 
 =back
 
@@ -389,7 +389,7 @@ well as a test if an update to a locally cached copy of the
 C<par> file is available.
 
 The C<par> element can optionally have any combination of
-C<os>, C<arch>, C<version>, or C<api_version>, as described for
+C<os>, C<arch>, C<version>, or C<perl_version>, as described for
 the C<resource> element; if these are present, the C<PAR> file
 specified will only be used if the client's Perl configuration
 matches the specified attributes.
@@ -435,8 +435,6 @@ C<application-desc> will cause the application to be
 launched with C<wperl>. With this, no console window will
 appear, meaning the application will not have access to
 C<STDOUT>, C<STDIN>, nor C<STDERR>.
-
-=cut
 
 =head1 COPYRIGHT
 

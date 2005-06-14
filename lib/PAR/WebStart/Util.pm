@@ -10,7 +10,7 @@ use Cwd;
 use base qw(Exporter);
 use Module::Signature qw(sign verify SIGNATURE_OK);
 
-our $VERSION = 0.11;
+our $VERSION = 0.15;
 our @EXPORT_OK = qw(make_par verifyMD5);
 
 use constant WIN32 => ($^O eq 'MSWin32');
