@@ -10,7 +10,7 @@ use PAR::WebStart;
 my $config   = Apache::Test::config();
 my $hostport = Apache::TestRequest::hostport($config) || '';
 
-plan tests => 28;
+plan tests => 29;
 
 my $uri = "http://$hostport/webstart?arg1=arg;arg2=3";
 
@@ -45,6 +45,8 @@ ok t_cmp($cfg->{perlws}->{version}, '0.1', 'perlws');
 ok t_cmp($cfg->{resources}->{os}, 'MSWin32', 'os');
 ok t_cmp($cfg->{resources}->{arch}, 'MSWin32-x86-multi-thread', 'arch');
 
+ok t_cmp($cfg->{'allow-unsigned-pars'}->{seen}, 1, 'allow unsigned pars');
+
 my $par_ref = $cfg->{par};
 ok t_cmp(scalar(@$par_ref), 2, 'par files');
 ok t_cmp($par_ref->[0]->{href}, 'A.par', 'A.par');
@@ -55,13 +57,12 @@ my $arg_ref = $cfg->{argument};
 ok t_cmp(scalar(@$arg_ref), 4, 'args');
 ok t_cmp($arg_ref->[0]->{value}, '--verbose', 'arg 1');
 ok t_cmp($arg_ref->[1]->{value}, '--debug', 'arg 2');
-ok t_cmp($arg_ref->[2]->{value}, 'arg1=arg', 'arg 3');
-ok t_cmp($arg_ref->[3]->{value}, 'arg2=3', 'arg 4');
+ok t_cmp($arg_ref->[2]->{value}, '--arg1=arg', 'arg 3');
+ok t_cmp($arg_ref->[3]->{value}, '--arg2=3', 'arg 4');
 
 my $mod_ref = $cfg->{module};
 ok t_cmp(scalar(@$mod_ref), 2, 'modules');
 ok t_cmp($mod_ref->[0]->{value}, 'Tk', 'Tk');
 ok t_cmp($mod_ref->[1]->{value}, 'LWP', 'LWP');
-
 
 unlink($file);

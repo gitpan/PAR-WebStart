@@ -5,7 +5,7 @@ use XML::SAX::ExpatXS;
 use XML::SAX;
 use File::Basename;
 use base qw(XML::SAX::Base);
-our $VERSION = 0.15;
+our $VERSION = 0.17;
 
 our %wantarray = map {$_ => 1} qw(par argument description module);
 

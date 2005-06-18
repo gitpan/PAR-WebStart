@@ -42,6 +42,7 @@ After installation, documentation is available for:
   make_par.pl: a script to make a suitable par archive
   perlws.pl: a script to register as the application to open .pnlp files
   pnlp_registry.pl: a script to add the necessary file association on Win32
+  Apache2::WebStart: a mod_perl-2 handler for generating PNLP files
 
 USAGE
 

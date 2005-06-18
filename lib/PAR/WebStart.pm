@@ -12,7 +12,7 @@ use PAR::WebStart::Util qw(verifyMD5);
 use Config;
 use constant WIN32 => PAR::WebStart::Util::WIN32;
 
-our $VERSION = 0.15;
+our $VERSION = 0.17;
 
 sub new {
   my ($class, %args) = @_;
@@ -111,7 +111,7 @@ sub fetch_pars {
     }
     if (-e $local_par) {
       my $status = verifyMD5(md5 => $local_md5, file => $local_par);
-      if ($status == 1) {
+      if ($status and $status =~ /^1$/) {
         my $base = basename($local_par, qr{\.par});
         push @{$self->{pars}}, $base;
         $self->{cached_pars}->{$base}++;
@@ -124,7 +124,7 @@ sub fetch_pars {
     }
 
     my $status = verifyMD5(md5 => $local_md5, file => $local_par);
-    unless ($status == 1) {
+    unless ($status and $status =~ /^1$/) {
       $self->{ERROR} = $status;
       return;
     }

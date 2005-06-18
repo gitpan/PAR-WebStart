@@ -10,11 +10,11 @@ if (WIN32()) {
   import Win32 qw(MB_ICONSTOP MB_ICONEXCLAMATION);
 }
 
-my $title = 'Perl WebStart';
-
 my $file = shift;
 my $ws = PAR::WebStart->new(file => $file);
 $ws->fetch_pars() or ws_exit("Error: $ws->{ERROR}");
+
+my $title = $ws->{cfg}->{title}->{value} || 'PAR::WebStart application';
 
 my $tmpdir = $ws->{tmpdir};
 chdir($tmpdir) or ws_exit(qq{Cannot chdir to "$tmpdir": $!});
@@ -47,7 +47,6 @@ if ($ENV{PAR_CLEAN}) {
   }
 }
 
-sleep(20);
 exit(0);
 
 sub ws_exit {
@@ -71,7 +70,7 @@ sub ws_confirm {
   my $cfg = shift;
 
   my $check_msg = '';
-  if ($cfg->{'allow-unsigned-pars'}->{seen}) {
+  if ($cfg->{'allow-unsigned-pars'} && $cfg->{'allow-unsigned-pars'}->{seen}) {
     $check_msg = <<"END";
 An md5 checksum of the par archives was performed; however,
 the provider of the application has disabled checking of
@@ -95,12 +94,21 @@ END
   }
   $args = "with arguments to the main script of:\n  $args\n" if $args;
 
+  my $name = $cfg->{title}->{value} || '(no title specified)';
+  my $desc = $cfg->{description}->[0]->{value} || '(no description specified)';
+  my $vendor = $cfg->{vendor}->{value} || '(no vendor specified)';
+  my $home = $cfg->{homepage}->{href} || '(no homepage specified)';
   my $msg = <<"END";
-You about to run the following program:
-  $cfg->{title}->{value}: $cfg->{description}->[0]->{value}
-supplied from
-  $cfg->{vendor}->{value}: $cfg->{homepage}->{href}
+You about to run the program:
+    $name
 $args
+The application is described as:
+    $desc
+and is supplied by:
+    $vendor
+whose homepage is found at:
+    $home
+
 $check_msg
 END
 

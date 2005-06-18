@@ -7,10 +7,11 @@ use Digest::MD5;
 use File::Spec;
 use File::Basename;
 use Cwd;
+use ExtUtils::Manifest qw(mkmanifest maniread);
 use base qw(Exporter);
 use Module::Signature qw(sign verify SIGNATURE_OK);
 
-our $VERSION = 0.15;
+our $VERSION = 0.17;
 our @EXPORT_OK = qw(make_par verifyMD5);
 
 use constant WIN32 => ($^O eq 'MSWin32');
@@ -36,6 +37,9 @@ sub make_par {
     my @d = File::Spec->splitdir($cwd);
     $name = ($d[$#d] eq 'blib') ? $d[$#d-1] : $d[$#d];
   }
+  $name .= '.par' unless ($name =~ /\.par$/);
+  my $dst_par = File::Spec->catfile($dst_dir, $name);
+  my $cs = $dst_par . '.md5';
 
   my @dirs = qw(arch lib script bin);
   my $test = 0;
@@ -47,42 +51,37 @@ sub make_par {
     }
   }
   die qq{Cannot find any of "@dirs"} unless $test;
-  my @files;
-  my @extras = qw(MANIFEST);
-  push (@extras, qw(SIGNATURE)) unless $no_sign;
 
-  foreach my $d(@dirs) {
-    next unless $has{$d};
-    finddepth(sub {-f $_ && push(@files, $File::Find::name)}, $d);
+  for my $file ( $dst_par, $cs, qw(SIGNATURE MANIFEST) ) {
+    next unless -f $file;
+    warn "Removing $file ...\n";
+    unlink($file);
   }
-  push @files, @extras;
-  open(my $fh, '>', 'MANIFEST') or die "Cannot open MANIFEST: $!";
-  foreach my $f(@files) {
-    print $fh "$f\n";
-  }
-  close $fh;
 
-  unless ($no_sign) {
+  mkmanifest();
+  my $maniread = maniread();
+  if ($no_sign) {
+    $maniread->{SIGNATURE} = undef if $maniread->{SIGNATURE};
+  }
+  else {
+    open(my $fh, '>>', 'MANIFEST') or die "Cannot open MANIFEST: $!";
+    print $fh "SIGNATURE\n";
+    close $fh;
+    $maniread->{SIGNATURE}++;
     sign(overwrite => 1);
     (verify() == SIGNATURE_OK) or die qq{Signature verification failed};
   }
 
   my $arc = Archive::Zip->new();
-  foreach my $d(@dirs) {
-    next unless $has{$d};
-    die qq{zip of "$d" failed}
-      unless $arc->addTree($d, $d,
-                           sub{ print "$_\n";}) == Archive::Zip::AZ_OK();
-  }
-  foreach my $f(@extras) {
+  print qq{\nAdding files to zip archive...\n};
+  foreach my $f(keys %$maniread) {
     die qq{zip of "$f" failed} unless $arc->addFile($f, $f);
-    print "$f\n";
+    print "\t$f\n";
   }
 
-  $name .= '.par' unless ($name =~ /\.par$/);
-  my $dst_par = File::Spec->catfile($dst_dir, $name);
   die qq{Writing to "$dst_par" failed}
         unless $arc->writeToFileNamed($dst_par) == Archive::Zip::AZ_OK();
+  print qq{Done!\n};
 
   open(my $par_fh, $dst_par) or die qq{Cannot open "$dst_par": $!};
   binmode($par_fh);
@@ -92,11 +91,18 @@ sub make_par {
     die qq{Computing md5 checksum of "$dst_par" failed};
   }
   close $par_fh;
-  my $cs = File::Spec->catfile($dst_dir, $name . '.md5');
+
   open(my $md5_fh, '>', $cs) or die qq{Cannot open "$cs": $!};
   print $md5_fh $md5;
   close $md5_fh;
 
+  my $check = verifyMD5(file => $dst_par, md5 => $cs);
+  if ($check == 1) {
+    print "Checksum for $dst_par OK.\n";
+  }
+  else {
+    die qq{Checksum for $dst_par failed: $check};
+  }
   return ($dst_par, $cs);
 }
 

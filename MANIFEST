@@ -26,5 +26,6 @@ Apache2/Apache2/WebStart.pm
 Apache2/t/TEST.PL
 Apache2/t/ws/webstart.t
 Apache2/t/conf/extra.last.conf.in
+Apache2/t/conf/extra.conf.in
 
 

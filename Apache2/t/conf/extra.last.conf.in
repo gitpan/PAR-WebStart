@@ -13,8 +13,10 @@ PerlModule Apache2::WebStart
    PerlSetVar WS_par "A.par"
    PerlAddVar WS_par "C.par"
    PerlSetVar WS_main "A"
-   PerlSetVar WS_arg "--verbose"
-   PerlAddVar WS_arg "--debug"
+   PerlSetVar WS_no_sign 1
+   PerlSetVar WS_arg "verbose"
+   PerlAddVar WS_arg "debug"
+   PerlSetVar WS_long_opts 1
    PerlSetVar WS_module "Tk"
    PerlAddVar WS_module "LWP"
 </Location>

@@ -9,9 +9,8 @@ use APR::Table ();                                    # dir_config->get
 use Apache2::Log ();                                  # log_error
 use Apache2::ServerRec ();                            # host_name
 use Apache2::RequestIO ();                            # print
-use vars qw($VERSION);
 
-$VERSION = '0.15';
+our $VERSION = 0.17;
 
 sub handler {
   my $r = shift;
@@ -19,16 +18,12 @@ sub handler {
   my %config;
   my $host_name = $r->server->server_hostname;
   if (my $port = $r->server->port) {
-      $host_name .= ':' . $port;
+      $host_name .= ':' . $port unless ($port == 80);
   }
 
   for my $key (qw(codebase title vendor homepage description main
-                  os arch version perl_version)) {
+                  os arch version perl_version no_sign long_opts short_opts)) {
     $config{$key} = $r->dir_config->get('WS_' . $key) || '';
-  }
-  unless ($config{codebase}) {
-    $r->log->error("WebStart: No codebase specified");
-    return Apache2::Const::SERVER_ERROR;
   }
 
   my $href = sprintf(qq{http://%s%s}, $host_name, $r->unparsed_uri);
@@ -58,6 +53,14 @@ sub handler {
   }
   $resources .= '>';
 
+  my $security = '';
+  if ($config{no_sign}) {
+    $security = <<'END';
+    <security>
+      <allow-unsigned-pars />
+    </security>
+END
+  }
   my @pars = $r->dir_config->get('WS_par');
   unless (@pars) {
     $r->log->error("WebStart: No par files specified");
@@ -77,7 +80,9 @@ sub handler {
   }
   my $args = '';
   if (@args) {
-    $args = join "\n", map{qq{     <argument>$_</argument>}} @args;
+    my $prefix = $config{long_opts} ? '--' :
+      ($config{short_opts} ? '-' : '');
+    $args = join "\n", map{qq{     <argument>$prefix$_</argument>}} @args;
   }
 
   my @mods = $r->dir_config->get('WS_module');
@@ -90,11 +95,12 @@ sub handler {
   $r->headers_out->set('Content-Disposition' => 'inline; filename=resp.pnlp');
 
   $r->print(<<"END");
-<?xml version="1.0" encoding="utf-8"?> 
+<?xml version="1.0" encoding="utf-8"?>
 <pnlp spec="0.1"
       codebase="$codebase"
       href="$href">
 $info
+$security
 $resources
       <perlws version="0.1"/>
 $pars
@@ -142,11 +148,13 @@ In F<httpd.conf>,
      PerlSetVar WS_homepage "docs/hello.html"
      PerlSetVar WS_description "A Perl WebStart Application"
      PerlSetVar WS_os "MSWin32"
+     PerlSetVar WS_no_sign 1
      PerlSetVar WS_par "A.par"
      PerlAddVar WS_par "C.par"
      PerlSetVar WS_main "A"
-     PerlSetVar WS_arg "--verbose"
+     PerlSetVar WS_arg "verbose"
      PerlAddVar WS_arg "--debug"
+     PerlSetVar WS_long_opts 1
      PerlSetVar WS_module "Tk"
      PerlAddVar WS_module "LWP"
   </Location>
@@ -162,14 +170,15 @@ C<PNLP> files.
 
 The following C<PerlSetVar> directives are used to control
 the content of the C<PNLP> file; of these, only
-C<WS_codebase> and at least one C<WS_par> must be specified.
+at least one C<WS_par> must be specified.
 
 =over
 
 =item C<PerlSetVar WS_codebase "lib/apps">
 
 This specifies the base by which all relative URLs specified
-in the PNLP file will be resolved against.
+in the PNLP file will be resolved against. If this is not specified,
+the default root document directory will be assumed.
 
 =item C<PerlSetVar WS_title "My App">
 
@@ -211,6 +220,13 @@ C<5.008006> for perl-5.8.6.
 This specifies that the application will only run on
 machines matching C<$Config{PERL_VERSION}>.
 
+=item C<PerlSetVar WS_no_sign 1>
+
+If set to a true value, this specifies that the par files
+will not be expected to be signed by C<Module::Signature>
+(the default value is false, meaning par files are expected
+to be signed).
+
 =item C<PerlSetVar WS_par "A.par">
 
 This specifies a C<par> file used within the application;
@@ -239,6 +255,26 @@ a query string of C<arg1=arg;arg2=3> will include the
 arguments (in order) C<arg1=arg> and C<arg2=3> passed to the main script.
 Query string arguments are added to the argument list after
 any specified by C<PerlSetVar WS_arg>.
+
+=item C<PerlSetVar WS_long_opts 1>
+
+If this option is set to a true value, all arguments passed via
+either C<PerlSetVar/PerlAddVar WS_arg> directives or by
+a query string will have two dashes (C<-->) prepended to them
+when passed to the main script (for example, a query string
+of C<arg=4> will be passed to the main script as C<--arg=4>.
+This may be useful if the main script uses C<Getopt::Long>
+to process command-line options.
+
+=item C<PerlSetVar WS_short_opts 1>
+
+If this option is set to a true value, all argumets passed via
+either C<PerlSetVar/PerlAddVar WS_arg> directives or by
+a query string will have one dash (C<->) prepended to them
+when passed to the main script (for example, a query string
+of C<a=4> will be passed to the main script as C<-a=4>.
+This may be useful if the main script uses C<Getopt::Std>
+to process command-line options.
 
 =item C<PerlSetVar WS_module "Tk">
 

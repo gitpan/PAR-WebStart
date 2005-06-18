@@ -4,18 +4,18 @@ use PAR::WebStart::Util qw(make_par);
 use Getopt::Long;
 
 my ($name, $help, $no_sign, $src_dir, $dst_dir);
-my $result = GetOptions('help' => \$help,
-                        'name=s' => \$name,
-                        'no-sign' => \$no_sign,
-                        'src_dir=s' => \$src_dir,
-                        'dst_dir=s' => \$dst_dir);
+my $rc = GetOptions('help' => \$help,
+                    'name=s' => \$name,
+                    'no-sign' => \$no_sign,
+                    'src_dir=s' => \$src_dir,
+                    'dst_dir=s' => \$dst_dir);
 
-if ($help) {
+if ($help or not $rc) {
     print <<"USE";
 
 Make a par archive for use with PAR::WebStart
 
-Usage: my ($par, $md5) = make_par [ options ]
+Usage: my (\$par, \$md5) = make_par [ options ]
 
 Available options:
 
