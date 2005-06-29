@@ -11,7 +11,7 @@ use ExtUtils::Manifest qw(mkmanifest maniread);
 use base qw(Exporter);
 use Module::Signature qw(sign verify SIGNATURE_OK);
 
-our $VERSION = 0.17;
+our $VERSION = 0.18;
 our @EXPORT_OK = qw(make_par verifyMD5);
 
 use constant WIN32 => ($^O eq 'MSWin32');
@@ -33,13 +33,16 @@ sub make_par {
 
   my $cwd = getcwd;
   $dst_dir ||= $cwd;
+  $src_dir ||= $cwd;
   unless ($name) {
     my @d = File::Spec->splitdir($cwd);
     $name = ($d[$#d] eq 'blib') ? $d[$#d-1] : $d[$#d];
   }
   $name .= '.par' unless ($name =~ /\.par$/);
   my $dst_par = File::Spec->catfile($dst_dir, $name);
-  my $cs = $dst_par . '.md5';
+  my $dst_cs = $dst_par . '.md5';
+  my $src_par = File::Spec->catfile($src_dir, $name);
+  my $src_cs = $src_par . '.md5';
 
   my @dirs = qw(arch lib script bin);
   my $test = 0;
@@ -52,7 +55,7 @@ sub make_par {
   }
   die qq{Cannot find any of "@dirs"} unless $test;
 
-  for my $file ( $dst_par, $cs, qw(SIGNATURE MANIFEST) ) {
+  for my $file ( $dst_par, $dst_cs, $src_par, $src_cs, qw(SIGNATURE MANIFEST) ) {
     next unless -f $file;
     warn "Removing $file ...\n";
     unlink($file);
@@ -92,18 +95,18 @@ sub make_par {
   }
   close $par_fh;
 
-  open(my $md5_fh, '>', $cs) or die qq{Cannot open "$cs": $!};
+  open(my $md5_fh, '>', $dst_cs) or die qq{Cannot open "$dst_cs": $!};
   print $md5_fh $md5;
   close $md5_fh;
 
-  my $check = verifyMD5(file => $dst_par, md5 => $cs);
+  my $check = verifyMD5(file => $dst_par, md5 => $dst_cs);
   if ($check == 1) {
     print "Checksum for $dst_par OK.\n";
   }
   else {
     die qq{Checksum for $dst_par failed: $check};
   }
-  return ($dst_par, $cs);
+  return ($dst_par, $dst_cs);
 }
 
 sub verifyMD5 {

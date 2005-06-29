@@ -33,7 +33,7 @@ if (WIN32) {
 
 else {
   my $exec = join ' ', @args;
-  my $cmd = qq{xterm -T "title" -e "cat<<END\n${msg}\nEND\nread -p 'press \'y\' to continue, or any other key to exit: ' -n1 reply; if test \\\"\\\$reply\\\" = \\\"y\\\"; then echo \\\"\\\n\\\" && $exec && read -p 'press any key to continue...' -n1;fi"};
+  my $cmd = qq{xterm -T "$title" -e "cat<<END\n${msg}\nEND\nread -p 'press \'y\' to continue, or any other key to exit: ' -n1 reply; if test \\\"\\\$reply\\\" = \\\"y\\\"; then echo \\\"\\\n\\\" && $exec;fi"};
   my $rc = qx{$cmd};
   ws_exit(qq{Execution of $cmd failed: $rc}) if $rc;
 }
