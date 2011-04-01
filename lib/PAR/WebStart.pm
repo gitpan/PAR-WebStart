@@ -12,7 +12,7 @@ use PAR::WebStart::Util qw(verifyMD5);
 use Config;
 use constant WIN32 => PAR::WebStart::Util::WIN32;
 
-our $VERSION = 0.18;
+our $VERSION = 0.19;
 
 sub new {
   my ($class, %args) = @_;
@@ -320,6 +320,10 @@ files with the appropriate application to use.
 Copyright, 2005, by Randy Kobes <r.kobes@uwinnipeg.ca>.
 This software is distributed under the same terms as Perl itself.
 See L<http://www.perl.com/perl/misc/Artistic.html>.
+
+=head1 CURRENT MAINTAINER
+
+Kenichi Ishigaki <ishigaki@cpan.org>
 
 =cut
 
